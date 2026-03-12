@@ -70,8 +70,47 @@ class DoctorCommandService:
                 reason = "surgery"
         elif "vacation" in lower or "leave" in lower or "holiday" in lower:
             intent = "set_vacation"
-            # Simple "5 June to 12 June" pattern -> we don't fully parse free text here;
-            # caller can still handle None safely.
+            # Parse "5 June to 12 June" or "5 Jun to 12 Jun" or "June 5 to June 12"
+            import re
+            months = {
+                "january": 1, "jan": 1, "february": 2, "feb": 2, "march": 3, "mar": 3,
+                "april": 4, "apr": 4, "may": 5, "june": 6, "jun": 6, "july": 7, "jul": 7,
+                "august": 8, "aug": 8, "september": 9, "sep": 9, "sept": 9,
+                "october": 10, "oct": 10, "november": 11, "nov": 11, "december": 12, "dec": 12,
+            }
+            # e.g. "5 june to 12 june" or "5 jun to 12 jun" or "june 5 to june 12"
+            parts = re.split(r"\s+to\s+", lower, maxsplit=1)
+            start_date = None
+            end_date = None
+            if len(parts) == 2:
+                start_part, end_part = parts[0].strip(), parts[1].strip()
+                for month_name, month_num in months.items():
+                    if month_name in start_part:
+                        day_match = re.search(r"\d{1,2}", start_part)
+                        if day_match:
+                            start_day = int(day_match.group())
+                            year = today.year
+                            if month_num < today.month or (month_num == today.month and start_day < today.day):
+                                year += 1
+                            start_date = f"{year}-{month_num:02d}-{start_day:02d}"
+                        break
+                else:
+                    start_date = None
+                for month_name, month_num in months.items():
+                    if month_name in end_part:
+                        day_match = re.search(r"\d{1,2}", end_part)
+                        if day_match:
+                            end_day = int(day_match.group())
+                            year = today.year
+                            if month_num < today.month or (month_num == today.month and end_day < today.day):
+                                year += 1
+                            end_date = f"{year}-{month_num:02d}-{end_day:02d}"
+                        break
+                else:
+                    end_date = None
+            else:
+                start_date = None
+                end_date = None
         elif has_any(["schedule", "book", "add", "fix", "set"]) and "appointment" in lower or has_any(
             ["schedule", "book", "see", "rakho"]
         ):

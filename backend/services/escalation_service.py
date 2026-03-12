@@ -3,6 +3,13 @@ from typing import List
 
 logger = logging.getLogger(__name__)
 
+# Exact message required by spec - no medical advice, forward to clinic
+SAFETY_REPLY = (
+    "This automated assistant cannot provide medical advice. "
+    "Your message has been forwarded to the clinic."
+)
+
+
 class EscalationService:
     """Service for detecting urgent/clinical messages that need escalation"""
     

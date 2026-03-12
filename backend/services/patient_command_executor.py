@@ -104,17 +104,23 @@ class PatientCommandExecutor:
             # Clear conversation state
             state_manager = ConversationStateManager(db)
             await state_manager.clear_state(patient_id)
-            
-            # Format confirmation
+
+            # Format confirmation; add phone calendar link if BASE_URL is set
             date_obj = datetime.strptime(selected_slot["date"], "%Y-%m-%d")
             time_obj = datetime.strptime(selected_slot["time"], "%H:%M")
-            
+            try:
+                from config import settings
+                calendar_note = ""
+                if getattr(settings, "BASE_URL", None) and settings.BASE_URL:
+                    calendar_note = f"\n\nAdd to your phone calendar: {settings.BASE_URL.rstrip('/')}/api/appointments/{appointment_id}/calendar.ics"
+            except Exception:
+                calendar_note = ""
             return f"""✅ Your appointment is confirmed!
 
 📅 Date: {date_obj.strftime('%A, %B %d, %Y')}
 🕐 Time: {time_obj.strftime('%I:%M %p')}
 
-Please arrive 10 minutes early. If you need to cancel or reschedule, just send me a message."""
+Please arrive 10 minutes early. If you need to cancel or reschedule, just send me a message.{calendar_note}"""
         
         except Exception as e:
             logger.error(f"Error handling slot selection: {e}", exc_info=True)

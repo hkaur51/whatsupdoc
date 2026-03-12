@@ -14,5 +14,6 @@ class Settings:
     WHATSAPP_API_TOKEN: str = os.environ.get('WHATSAPP_API_TOKEN', '')
     WHATSAPP_PHONE_NUMBER_ID: str = os.environ.get('WHATSAPP_PHONE_NUMBER_ID', '')
     WHATSAPP_VERIFY_TOKEN: str = os.environ.get('WHATSAPP_VERIFY_TOKEN', 'whatsup_doc_verify_token')
+    BASE_URL: str = os.environ.get('BASE_URL', '')  # e.g. https://your-app.onrender.com for calendar.ics links
 
 settings = Settings()

@@ -15,6 +15,7 @@ class MessageCreate(BaseModel):
     original_text: str
     detected_language: Optional[str] = None
     translated_text: Optional[str] = None
+    translated_to_language: Optional[str] = None
     parsed_intent: Optional[Dict] = None
     action_taken: Optional[str] = None
     result_status: str = "success"
@@ -27,6 +28,7 @@ class Message(BaseModel):
     original_text: str
     detected_language: Optional[str] = None
     translated_text: Optional[str] = None
+    translated_to_language: Optional[str] = None
     parsed_intent: Optional[Dict] = None
     action_taken: Optional[str] = None
     whatsapp_message_id: Optional[str] = None
