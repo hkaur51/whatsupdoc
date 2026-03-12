@@ -1,7 +1,8 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Form
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 from contextlib import asynccontextmanager
+import uuid
 
 from config import settings
 from database import connect_to_mongo, close_mongo_connection
@@ -12,6 +13,7 @@ from routers import (
     appointments_router,
     health_router
 )
+from routers.webhook import process_incoming_message
 
 # Configure logging
 logging.basicConfig(
@@ -71,6 +73,17 @@ async def root():
             "appointments": "/api/appointments"
         }
     }
+
+@app.post("/twilio-whatsapp")
+async def twilio_whatsapp(From: str = Form(...), Body: str = Form(...)):
+    """Twilio WhatsApp sandbox webhook adapter"""
+    fake_message = {
+        "from": From.replace("whatsapp:", ""),
+        "id": str(uuid.uuid4()),
+        "text": {"body": Body}
+    }
+    await process_incoming_message(fake_message, {})
+    return {"status": "ok"}
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
