@@ -1,6 +1,8 @@
-# Deploy DentBot (WhatsUpDoc) to Render
+# Deploy WhatsUpDoc to Render
 
 This backend runs as a **Web Service** on Render. Calendar is stored in the database only (no Google Calendar); patients and doctors can add appointments to their **phone calendar** via the ICS link sent in WhatsApp.
+
+**Using your own WhatsApp Business number?** See **[WHATSAPP_BUSINESS_SETUP.md](./WHATSAPP_BUSINESS_SETUP.md)** for how to purchase/register a number and connect it to this backend.
 
 ---
 
@@ -25,7 +27,7 @@ This backend runs as a **Web Service** on Render. Calendar is stored in the data
 1. **Dashboard** → **New** → **Web Service**.
 2. Connect your GitHub repo.
 3. Configure:
-   - **Name:** e.g. `dentbot` or `whatsupdoc`.
+   - **Name:** e.g. `whatsupdoc`.
    - **Region:** Choose one (e.g. Singapore for India).
    - **Branch:** `main` (or your default).
    - **Root Directory:** Leave empty if the repo root contains the app, or set to the folder that contains `server.py` (e.g. `backend` if the repo root is the project root).
@@ -62,7 +64,7 @@ In the Render Web Service → **Environment** tab, add:
 | `WHATSAPP_VERIFY_TOKEN` | A secret string | Same as in Meta Developer app (webhook verify) |
 | `WHATSAPP_API_TOKEN` | Your WhatsApp Cloud API token | Long-lived access token |
 | `WHATSAPP_PHONE_NUMBER_ID` | Phone number ID | From Meta Developer app |
-| `WHATSAPP_MOCK_MODE` | `false` | Set to `false` for real WhatsApp |
+| `WHATSAPP_MOCK_MODE` | `false` | Set to `false` when using your own WhatsApp Business number |
 | `BASE_URL` | `https://your-service-name.onrender.com` | Your Render URL (no trailing slash); used for calendar.ics links |
 
 Optional (if you use them):
@@ -73,14 +75,16 @@ After saving, Render will redeploy.
 
 ---
 
-## 5. WhatsApp Cloud API webhook
+## 5. WhatsApp Cloud API webhook (when using your own Business number)
 
-1. In [Meta for Developers](https://developers.facebook.com/), open your app → **WhatsApp** → **Configuration**.
+1. In [Meta for Developers](https://developers.facebook.com/) (or your BSP), open your app → **WhatsApp** → **Configuration**.
 2. Under **Webhook**, set:
    - **Callback URL:** `https://your-service-name.onrender.com/api/webhook/whatsapp`
    - **Verify Token:** Same as `WHATSAPP_VERIFY_TOKEN` in Render.
 3. Subscribe to **messages** (and any other events you need).
-4. When Meta sends a GET request to the callback URL with `hub.mode=subscribe` and `hub.verify_token=...`, your app must return `hub.challenge` (your webhook already does this).
+4. When Meta sends a GET request to the callback URL with `hub.mode=subscribe` and `hub.verify_token=...`, your app returns `hub.challenge` (your webhook already does this).
+
+For full steps (getting a number, Phone number ID, token), see **[WHATSAPP_BUSINESS_SETUP.md](./WHATSAPP_BUSINESS_SETUP.md)**.
 
 ---
 
