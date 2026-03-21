@@ -44,6 +44,17 @@ class DoctorCommandService:
             date = tomorrow.isoformat()
         elif "today" in lower:
             date = today.isoformat()
+        else:
+            # Check for day names (monday, tuesday, etc.)
+            day_names = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+            for i, day in enumerate(day_names):
+                if day in lower:
+                    current_weekday = today.weekday()
+                    days_ahead = (i - current_weekday) % 7
+                    if days_ahead == 0:
+                        days_ahead = 7  # Next occurrence
+                    date = (today + timedelta(days=days_ahead)).isoformat()
+                    break
 
         # Very rough time parsing for "10 to 1", "10-1", "10 am", "5 pm"
         import re
@@ -111,16 +122,16 @@ class DoctorCommandService:
             else:
                 start_date = None
                 end_date = None
+        elif has_any(["show", "list"]) and "appointment" in lower:
+            intent = "list_appointments"
         elif has_any(["schedule", "book", "add", "fix", "set"]) and "appointment" in lower or has_any(
-            ["schedule", "book", "see", "rakho"]
+            ["schedule", "book", "rakho"]
         ):
             intent = "create_appointment"
         elif "cancel" in lower:
             intent = "cancel_appointment"
         elif "reschedule" in lower or "move" in lower or "change" in lower:
             intent = "reschedule_appointment"
-        elif has_any(["show", "list", "see"]) and "appointment" in lower:
-            intent = "list_appointments"
 
         # Naive patient name extraction: word after "schedule"/"cancel"
         for keyword in ["schedule", "cancel", "reschedule"]:
