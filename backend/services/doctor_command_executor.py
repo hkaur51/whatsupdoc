@@ -43,7 +43,17 @@ class DoctorCommandExecutor:
             elif intent == "send_broadcast":
                 return await self._send_broadcast(db, parsed_command, doctor_id)
             else:
-                return f"✅ Command understood: {intent}. Processing..."
+                return (
+                    "👋 Hello Dr. " + doctor.get("name", "").split()[0] + "!\n\n"
+                    "Here's what I can do:\n\n"
+                    "📅 *Schedule*: \"Schedule Ramesh tomorrow 5 pm\"\n"
+                    "❌ *Cancel*: \"Cancel Ramesh tomorrow\"\n"
+                    "🔄 *Reschedule*: \"Reschedule Ramesh to Friday 3 pm\"\n"
+                    "📋 *List*: \"Show today appointments\"\n"
+                    "🚫 *Block time*: \"Block tomorrow 10 to 1 for surgery\"\n"
+                    "🏖️ *Vacation*: \"Vacation 5 June to 12 June\"\n\n"
+                    "Just type a command in natural language!"
+                )
         
         except Exception as e:
             logger.error(f"Error executing doctor command: {e}", exc_info=True)
