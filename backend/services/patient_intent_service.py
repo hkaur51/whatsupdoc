@@ -40,16 +40,25 @@ class PatientIntentService:
                 intent = "reschedule_appointment"
         elif any(k in lower for k in ["when can i come", "when are you free", "availability", "free slots"]):
             intent = "ask_availability"
-        elif any(k in lower for k in ["appointment", "can i come", "i want to come", "see you"]):
+        elif any(k in lower for k in ["appointment", "can i come", "i want to come", "see you", "book", "visit"]):
             intent = "book_appointment"
         elif any(k in lower for k in ["when is my appointment", "next appointment", "my appointment time"]):
             intent = "check_appointment"
 
-        # Very simple date heuristics
+        # Date heuristics
         if "tomorrow" in lower or "kal" in lower:
             preferred_date = "tomorrow"
         elif "today" in lower or "aaj" in lower:
             preferred_date = "today"
+        else:
+            # Check for day names
+            for day in ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]:
+                if day in lower:
+                    preferred_date = day
+                    # If no intent was set but a day was mentioned, assume booking
+                    if intent == "general_query":
+                        intent = "book_appointment"
+                    break
 
         # Simple time phrase detection (morning/evening)
         if any(k in lower for k in ["morning", "subah"]):

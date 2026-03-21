@@ -472,5 +472,15 @@ What would you like to do?"""
         elif "day after tomorrow" in preferred_date:
             return today + timedelta(days=2)
         else:
+            # Try to match a day name (e.g., "monday", "tuesday")
+            day_names = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+            for i, day in enumerate(day_names):
+                if day in preferred_date:
+                    target_weekday = i  # Monday=0, Sunday=6
+                    current_weekday = today.weekday()
+                    days_ahead = (target_weekday - current_weekday) % 7
+                    if days_ahead == 0:
+                        days_ahead = 7  # Next occurrence, not today
+                    return today + timedelta(days=days_ahead)
             # Default to tomorrow
             return today + timedelta(days=1)
