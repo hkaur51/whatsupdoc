@@ -180,6 +180,11 @@ async def handle_patient_message(db, phone: str, message_text: str, clinic_id: s
         if patient.get("consent_status") == "pending":
             await handle_consent_flow(db, phone, message_text, patient_id, clinic_id)
             return
+
+        # Name collection: ask for name after consent if not yet provided
+        if not patient.get("name"):
+            await handle_name_collection(db, phone, message_text, patient_id)
+            return
         
         # Clinical/urgent: do not answer clinically; send safety message and forward to clinic
         is_urgent = escalation_service.detect_escalation(message_text)
@@ -285,12 +290,34 @@ async def handle_consent_flow(db, phone: str, message_text: str, patient_id: str
         await db.consents.insert_one(consent_doc)
         await whatsapp_service.send_message(
             phone,
-            "Thank you! How can I help you today? You can:\n\n"
-            "• Book an appointment\n• Check your appointments\n• Reschedule or cancel\n\n"
-            "Just tell me what you need!"
+            "Thank you! Before we begin, what is your name?"
         )
     else:
         await whatsapp_service.send_message(phone, CONSENT_REQUEST_TEXT)
+
+
+async def handle_name_collection(db, phone: str, message_text: str, patient_id: str):
+    """Collect patient name after consent is given."""
+    name = message_text.strip()
+    # Basic validation: name should be at least 2 chars and look like a name
+    if len(name) < 2 or name.isdigit():
+        await whatsapp_service.send_message(phone, "Please enter your full name.")
+        return
+
+    # Capitalize properly
+    name = " ".join(word.capitalize() for word in name.split())
+
+    await db.patients.update_one(
+        {"id": patient_id},
+        {"$set": {"name": name}}
+    )
+    await whatsapp_service.send_message(
+        phone,
+        f"Welcome, {name}! How can I help you today?\n\n"
+        "• Book an appointment\n• Check your appointments\n• Reschedule or cancel\n\n"
+        "Just tell me what you need!"
+    )
+
 
 async def handle_escalation(db, phone: str, message_text: str, clinic_id: str, patient_id: str):
     """Handle clinical/urgent messages: send exact safety reply and forward to clinic."""
