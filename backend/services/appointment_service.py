@@ -27,7 +27,15 @@ class AppointmentService:
             working_hours = clinic.get("working_hours", {})
             start_time = working_hours.get("start", "09:00")
             end_time = working_hours.get("end", "18:00")
-            
+            working_days = working_hours.get("days", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"])
+
+            # Check if the requested date is a working day
+            target_date_obj = datetime.strptime(date, "%Y-%m-%d")
+            day_name = target_date_obj.strftime("%A")
+            if day_name not in working_days:
+                logger.info("Date %s (%s) is not a working day", date, day_name)
+                return []
+
             # Get existing appointments for this doctor on this date
             existing_appointments = await db.appointments.find({
                 "doctor_id": doctor_id,

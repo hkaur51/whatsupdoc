@@ -155,6 +155,12 @@ Please arrive 10 minutes early. If you need to cancel or reschedule, just send m
             )
             
             if not slots:
+                # Try to find the next working day with slots
+                clinic = await db.clinics.find_one({"id": clinic_id})
+                working_days = clinic.get("working_hours", {}).get("days", []) if clinic else []
+                day_name = target_date.strftime("%A")
+                if working_days and day_name not in working_days:
+                    return f"Sorry, the clinic is closed on {day_name}s. We're open {', '.join(working_days)}. Would you like to check another day?"
                 return f"Sorry, no available slots on {target_date.strftime('%A, %B %d')}. Would you like to check another day?"
             
             # Store conversation state
@@ -445,17 +451,22 @@ Clinic hours: {start} - {end}
 
 What would you like to do?"""
     
-    def _parse_preferred_date(self, preferred_date: str) -> datetime:
+    def _parse_preferred_date(self, preferred_date) -> datetime:
         """Parse preferred date string to datetime"""
         today = datetime.now()
-        
+
+        if not preferred_date:
+            return today + timedelta(days=1)
+
+        preferred_date = str(preferred_date).lower()
+
         if preferred_date in ["tomorrow", "kal"]:
             return today + timedelta(days=1)
         elif preferred_date in ["today", "aaj"]:
             return today
-        elif "next week" in preferred_date.lower():
+        elif "next week" in preferred_date:
             return today + timedelta(days=7)
-        elif "day after tomorrow" in preferred_date.lower():
+        elif "day after tomorrow" in preferred_date:
             return today + timedelta(days=2)
         else:
             # Default to tomorrow
