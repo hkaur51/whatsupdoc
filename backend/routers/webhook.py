@@ -299,9 +299,18 @@ async def handle_consent_flow(db, phone: str, message_text: str, patient_id: str
 async def handle_name_collection(db, phone: str, message_text: str, patient_id: str):
     """Collect patient name after consent is given."""
     name = message_text.strip()
-    # Basic validation: name should be at least 2 chars and look like a name
-    if len(name) < 2 or name.isdigit():
-        await whatsapp_service.send_message(phone, "Please enter your full name.")
+
+    # Reject greetings, commands, and non-name inputs
+    not_a_name = [
+        "hi", "hello", "hey", "hii", "hiii", "yo", "sup", "ok", "okay", "yes", "no",
+        "book", "appointment", "cancel", "reschedule", "check", "help",
+        "haan", "ha", "nahi", "namaste", "hola",
+    ]
+    if len(name) < 2 or name.isdigit() or name.lower() in not_a_name:
+        await whatsapp_service.send_message(
+            phone,
+            "I need your name to set up your profile. Please enter your full name (e.g., Rahul Sharma)."
+        )
         return
 
     # Capitalize properly
