@@ -44,7 +44,7 @@ class DoctorCommandExecutor:
                 return await self._send_broadcast(db, parsed_command, doctor_id)
             else:
                 return (
-                    "👋 Hello Dr. " + doctor.get("name", "").split()[0] + "!\n\n"
+                    "👋 Hello Dr. " + (doctor.get("name", "").split() or [""])[0] + "!\n\n"
                     "Here's what I can do:\n\n"
                     "📅 *Schedule*: \"Schedule Ramesh tomorrow 5 pm\"\n"
                     "❌ *Cancel*: \"Cancel Ramesh tomorrow\"\n"

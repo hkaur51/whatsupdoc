@@ -151,7 +151,8 @@ Please arrive 10 minutes early. If you need to cancel or reschedule, just send m
                 clinic_id=clinic_id,
                 doctor_id=doctor["id"],
                 date=target_date.strftime("%Y-%m-%d"),
-                duration_minutes=30
+                duration_minutes=30,
+                db=db
             )
             
             if not slots:
@@ -301,7 +302,8 @@ If you'd like to book a new appointment, just let me know!"""
                 clinic_id=clinic_id,
                 doctor_id=doctor["id"],
                 date=target_date.strftime("%Y-%m-%d"),
-                duration_minutes=30
+                duration_minutes=30,
+                db=db
             )
             
             if not slots:
@@ -407,7 +409,8 @@ See you then!"""
                 clinic_id=clinic_id,
                 doctor_id=doctor["id"],
                 date=target_date.strftime("%Y-%m-%d"),
-                duration_minutes=30
+                duration_minutes=30,
+                db=db
             )
             
             if not slots:

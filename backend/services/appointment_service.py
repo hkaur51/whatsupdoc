@@ -7,23 +7,30 @@ logger = logging.getLogger(__name__)
 
 class AppointmentService:
     """Service for managing appointments"""
-    
+
     async def get_available_slots(
         self,
         clinic_id: str,
         doctor_id: str,
         date: str,
-        duration_minutes: int = 30
+        duration_minutes: int = 30,
+        db=None
     ) -> List[Dict[str, Any]]:
         """Get available appointment slots for a doctor on a given date"""
         try:
-            db = get_database()
-            
+            if db is None:
+                db = get_database()
+
+            if db is None:
+                logger.error("Database connection not available")
+                return []
+
             # Get clinic working hours
             clinic = await db.clinics.find_one({"id": clinic_id}, {"_id": 0})
             if not clinic:
+                logger.warning("Clinic %s not found", clinic_id)
                 return []
-            
+
             working_hours = clinic.get("working_hours", {})
             start_time = working_hours.get("start", "09:00")
             end_time = working_hours.get("end", "18:00")
@@ -42,7 +49,7 @@ class AppointmentService:
                 "appointment_date": date,
                 "status": {"$in": ["scheduled", "confirmed"]}
             }, {"_id": 0}).to_list(100)
-            
+
             # Get calendar blocks for this doctor
             target_date = datetime.strptime(date, "%Y-%m-%d")
             calendar_blocks = await db.calendar_blocks.find({
@@ -54,10 +61,10 @@ class AppointmentService:
                     "$gte": target_date.replace(hour=0, minute=0).isoformat()
                 }
             }, {"_id": 0}).to_list(100)
-            
+
             # Generate time slots
             slots = self._generate_time_slots(start_time, end_time, duration_minutes)
-            
+
             # Filter out booked slots
             available_slots = []
             for slot in slots:
@@ -67,29 +74,30 @@ class AppointmentService:
                         "date": date,
                         "available": True
                     })
-            
+
+            logger.info("Found %d available slots on %s", len(available_slots), date)
             return available_slots
-        
+
         except Exception as e:
             logger.error(f"Error getting available slots: {e}", exc_info=True)
             return []
-    
+
     def _generate_time_slots(self, start_time: str, end_time: str, duration_minutes: int) -> List[str]:
         """Generate time slots between start and end time"""
         slots = []
-        
+
         start_hour, start_minute = map(int, start_time.split(":"))
         end_hour, end_minute = map(int, end_time.split(":"))
-        
+
         current = datetime.now().replace(hour=start_hour, minute=start_minute, second=0, microsecond=0)
         end = datetime.now().replace(hour=end_hour, minute=end_minute, second=0, microsecond=0)
-        
+
         while current < end:
             slots.append(current.strftime("%H:%M"))
             current += timedelta(minutes=duration_minutes)
-        
+
         return slots
-    
+
     def _is_slot_booked(
         self,
         slot_time: str,
@@ -102,14 +110,14 @@ class AppointmentService:
         for apt in appointments:
             if apt.get("appointment_time") == slot_time:
                 return True
-        
+
         # Check calendar blocks
         slot_datetime = datetime.strptime(f"{date} {slot_time}", "%Y-%m-%d %H:%M")
         for block in calendar_blocks:
             block_start = datetime.fromisoformat(block["start_datetime"])
             block_end = datetime.fromisoformat(block["end_datetime"])
-            
+
             if block_start <= slot_datetime < block_end:
                 return True
-        
+
         return False

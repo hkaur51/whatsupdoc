@@ -296,7 +296,7 @@ async def handle_escalation(db, phone: str, message_text: str, clinic_id: str, p
     """Handle clinical/urgent messages: send exact safety reply and forward to clinic."""
     await whatsapp_service.send_message(phone, SAFETY_REPLY)
     clinic = await db.clinics.find_one({"id": clinic_id}, {"_id": 0})
-    forward_to = (clinic.get("phone") or "").strip()
+    forward_to = (clinic.get("phone") or "").strip() if clinic else ""
     if not forward_to:
         doctor = await db.doctors.find_one({"clinic_id": clinic_id, "is_active": True})
         if doctor:
