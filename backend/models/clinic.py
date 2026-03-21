@@ -15,7 +15,8 @@ class ClinicCreate(BaseModel):
     escalation_keywords: Optional[List[str]] = Field(default_factory=lambda: [
         "pain", "swelling", "bleeding", "emergency", "urgent", "severe",
         "dard", "sujan", "khoon", "तुरंत", "दर्द"
-    ])
+    ]) 
+    # increase width avenue for escalation keywords or let a serverless llm handle the emotion of the user prompt. 
 
 class Clinic(BaseModel):
     id: str

@@ -16,4 +16,10 @@ class Settings:
     WHATSAPP_VERIFY_TOKEN: str = os.environ.get('WHATSAPP_VERIFY_TOKEN', 'whatsup_doc_verify_token')
     BASE_URL: str = os.environ.get('BASE_URL', '')  # e.g. https://your-app.onrender.com for calendar.ics links
 
+    # Twilio WhatsApp Sandbox config
+    TWILIO_ACCOUNT_SID: str = os.environ.get('TWILIO_ACCOUNT_SID', '')
+    TWILIO_AUTH_TOKEN: str = os.environ.get('TWILIO_AUTH_TOKEN', '')
+    TWILIO_WHATSAPP_NUMBER: str = os.environ.get('TWILIO_WHATSAPP_NUMBER', 'whatsapp:+14155238886')  # Sandbox default
+    WHATSAPP_BACKEND: str = os.environ.get('WHATSAPP_BACKEND', 'mock')  # 'mock', 'twilio', or 'meta'
+
 settings = Settings()

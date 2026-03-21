@@ -36,6 +36,8 @@ class TranslationService:
             "Mock translate (passthrough) '%s' from %s to %s", text[:80], source_lang, target_lang
         )
         return text
+    
+    # doesn't transalte it to functions 
 
     async def detect_language(self, text: str) -> Tuple[str, float]:
         """Detect the language of the given text. Returns (language_code, confidence_score)."""
