@@ -11,7 +11,9 @@ from routers import (
     doctors_router,
     patients_router,
     appointments_router,
-    health_router
+    health_router,
+    chat_router,
+    auth_router,
 )
 from routers.webhook import process_incoming_message
 
@@ -56,6 +58,8 @@ app.include_router(doctors_router, prefix="/api")
 app.include_router(patients_router, prefix="/api")
 app.include_router(appointments_router, prefix="/api")
 app.include_router(health_router, prefix="/api")
+app.include_router(chat_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
 
 @app.get("/api")
 async def root():

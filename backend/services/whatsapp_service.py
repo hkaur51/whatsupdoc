@@ -14,9 +14,19 @@ WHATSAPP_API_BASE = "https://graph.facebook.com/v21.0"
 
 class WhatsAppService:
     """Service for sending WhatsApp messages.
-    Supports three backends: mock, twilio (sandbox), and meta (Cloud API).
-    Set WHATSAPP_BACKEND env var to choose: 'mock' | 'twilio' | 'meta'
+    Supports four backends: mock, twilio (sandbox), meta (Cloud API), and web.
+    The 'web' backend buffers outgoing messages per-phone in memory so the
+    /api/chat endpoint can surface them to the browser instead of sending SMS.
+    Set WHATSAPP_BACKEND env var to choose: 'mock' | 'twilio' | 'meta' | 'web'.
     """
+
+    # Class-level outbox shared across instances. Keyed by recipient phone.
+    _web_outbox: Dict[str, list] = {}
+
+    @classmethod
+    def collect_web_messages(cls, phone: str) -> list:
+        """Drain and return any buffered messages for a given synthetic phone."""
+        return cls._web_outbox.pop(phone, []) or []
 
     def __init__(self):
         self.backend = getattr(settings, "WHATSAPP_BACKEND", "mock").lower()
@@ -45,13 +55,26 @@ class WhatsAppService:
         return self._twilio_client
 
     async def send_message(self, to_phone: str, message: str) -> Dict[str, Any]:
-        """Send a WhatsApp message using the configured backend."""
+        """Send a WhatsApp message using the configured backend.
+
+        Web sessions (phone prefixed with 'web-') are always buffered, regardless
+        of the configured backend, so the /api/chat widget receives replies.
+        """
+        if isinstance(to_phone, str) and to_phone.startswith("web-"):
+            return await self._send_web(to_phone, message)
         if self.backend == "twilio":
             return await self._send_twilio(to_phone, message)
         elif self.backend == "meta":
             return await self._send_meta(to_phone, message)
+        elif self.backend == "web":
+            return await self._send_web(to_phone, message)
         else:
             return await self._send_mock(to_phone, message)
+
+    async def _send_web(self, to_phone: str, message: str) -> Dict[str, Any]:
+        self._web_outbox.setdefault(to_phone, []).append(message)
+        logger.info("[WEB chat] %s -> %s", to_phone, message[:120])
+        return {"status": "buffered", "to": to_phone}
 
     async def _send_mock(self, to_phone: str, message: str) -> Dict[str, Any]:
         logger.info("[MOCK WhatsApp] To: %s", to_phone)

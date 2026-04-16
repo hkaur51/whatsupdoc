@@ -20,6 +20,13 @@ class Settings:
     TWILIO_ACCOUNT_SID: str = os.environ.get('TWILIO_ACCOUNT_SID', '')
     TWILIO_AUTH_TOKEN: str = os.environ.get('TWILIO_AUTH_TOKEN', '')
     TWILIO_WHATSAPP_NUMBER: str = os.environ.get('TWILIO_WHATSAPP_NUMBER', 'whatsapp:+14155238886')  # Sandbox default
-    WHATSAPP_BACKEND: str = os.environ.get('WHATSAPP_BACKEND', 'mock')  # 'mock', 'twilio', or 'meta'
+    WHATSAPP_BACKEND: str = os.environ.get('WHATSAPP_BACKEND', 'mock')  # 'mock', 'twilio', 'meta', or 'web'
+
+    # Auth
+    JWT_SECRET: str = os.environ.get('JWT_SECRET', 'dev-secret-change-me')
+
+    # LLM (DSPy + Gemini free tier)
+    GEMINI_API_KEY: str = os.environ.get('GEMINI_API_KEY', '')
+    GEMINI_MODEL: str = os.environ.get('GEMINI_MODEL', 'gemini/gemini-2.0-flash')
 
 settings = Settings()
